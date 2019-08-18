@@ -1,0 +1,166 @@
+----法金資料
+---1.TOTAL
+--Rev (=NII+FEE-COST)
+--NII
+--FEE
+--COST
+--AP
+--BAL月積數
+---2.BY 各產品
+--Rev (=NII+FEE-COST)
+--NII
+--FEE
+--COST
+--AP
+--BAL月積數
+
+----個金資料
+---1.TOTAL
+--REV (=NII+FEE)
+--NII
+--FEE
+--COST
+--AP?
+--AUM(僅分NII、FEE)
+--LUM(僅分USL、SL)
+---2.BY 各產品
+--REV (=NII+FEE)
+--NII
+--FEE
+--COST
+--AP?
+--AUM(僅分NII、FEE)
+--LUM(僅分USL、SL)
+
+---------------------------------------------------------------------------------------------------
+----法金資料Total (參閱法金單月積數、收益、成本＿group by Id ,wide)
+-- 先 union 一個ID名單，再left join（一般來說時間一致可不用做union） 
+sel customer_id
+,sum(avg_balance)/6 as avg_balance
+,sum(Net_Int_Income) as Net_Int_Income
+,sum(Net_Fee_Income) as Net_Fee_Income
+,sum(Other_Income) as Other_Income
+,sum(Total_Revenue) as Total_Revenue
+,sum(Cable_Charge) as Cable_Charge
+,sum(FX_Spread_Charge) as FX_Spread_Charge
+,sum(Operation_Expense) as Operation_Expense
+,sum(Ap_p) as Ap_p
+,sum(Ep_p) as Ep_p
+, Cable_Charge + FX_Spread_Charge + Operation_Expense as COST
+
+from temp_corporate.cb_cpm_2019 a
+left join temp_corporate.weekly_cif_snapshot cif
+        On a.customer_id=cif.customer_id 
+WHERE snapshot_yr_mth >= 190101 and snapshot_yr_mth < 190701
+and channel_code ='SME'
+group by customer_id
+
+
+----法金各產品Rev（check產品code)
+--REV
+sel customer_id
+,sum(case when L2_Prod_code in ('P101','P102') then Total_Revenue else 0 end) as "Rev_ddp"
+,sum(case when L2_Prod_code in ('P103','P104') then Total_Revenue else 0 end) as "Rev_fdp"
+,sum(case when L2_Prod_code in ('P107') then Total_Revenue else 0 end) as "Rev_ex"
+,sum(case when L1_Prod_code in ('P2','P4') then Total_Revenue else 0 end) as "Rev_TBL"
+,sum(case when L2_Prod_code in ('P301','P302') then Total_Revenue else 0 end) as "Rev_dl"
+,sum(case when L2_Prod_code in ('P303') then Total_Revenue else 0 end) as "Rev_fl"
+,sum(case when L1_Prod_code in ('P5') then Total_Revenue else 0 end) as "Rev_OW"
+,sum(case when L1_Prod_code in ('Q3') then Total_Revenue else 0 end) as "Rev_tmu"
+,sum(case when L1_Prod_code in ('QA') then Total_Revenue else 0 end) as "Rev_Overseas"
+,sum(case when L1_prod_code = 'P1' and L2_prod_code not in ('P101','P102','P103','P104','P107')
+and (L1_prod_code = 'P3' and L2_Prod_code in ('P398','P399','P304'))
+and L1_prod_code in ('PA','PB','PD','PE','Q1','Q2','Q6') then Total_Revenue else 0 end) as "Rev_Other"
+,Rev_ddp + Rev_fdp as Rev_ttdp
+,Rev_dl + Rev_fl as Rev_ttl
+
+--NII
+sel customer_id
+,sum(case when L2_Prod_code in ('P101','P102') then Net_Int_Income else 0 end) as "Nii_ddp"
+,sum(case when L2_Prod_code in ('P103','P104') then Net_Int_Income else 0 end) as "Nii_fdp"
+,sum(case when L2_Prod_code in ('P107') then Net_Int_Income else 0 end) as "Nii_ex"
+,sum(case when L1_Prod_code in ('P2','P4') then Net_Int_Income else 0 end) as "Nii_TBL"
+,sum(case when L2_Prod_code in ('P301','P302') then Net_Int_Income else 0 end) as "Nii_dl"
+,sum(case when L2_Prod_code in ('P303') then Net_Int_Income else 0 end) as "Nii_fl"
+,sum(case when L1_Prod_code in ('P5') then Net_Int_Income else 0 end) as "Nii_OW"
+,sum(case when L1_Prod_code in ('Q3') then Net_Int_Income else 0 end) as "Nii_tmu"
+,sum(case when L1_Prod_code in ('QA') then Net_Int_Income else 0 end) as "Nii_Overseas"
+,sum(case when L1_prod_code = 'P1' and L2_prod_code not in ('P101','P102','P103','P104','P107')
+and (L1_prod_code = 'P3' and L2_Prod_code in ('P398','P399','P304'))
+and L1_prod_code in ('PA','PB','PD','PE','Q1','Q2','Q6') then Net_Int_Income else 0 end) as "Nii_Other"
+,Nii_ddp + Nii_fdp as Nii_ttdp
+,Nii_dl + Nii_fl as Nii_ttl
+
+--FEE
+sel customer_id
+,sum(case when L2_Prod_code in ('P101','P102') then Net_Fee_Income else 0 end) as "Fee_ddp"
+,sum(case when L2_Prod_code in ('P103','P104') then Net_Fee_Income else 0 end) as "Fee_fdp"
+,sum(case when L2_Prod_code in ('P107') then Net_Fee_Income else 0 end) as "Fee_ex"
+,sum(case when L1_Prod_code in ('P2','P4') then Net_Fee_Income else 0 end) as "Fee_TBL"
+,sum(case when L2_Prod_code in ('P301','P302') then Net_Fee_Income else 0 end) as "Fee_dl"
+,sum(case when L2_Prod_code in ('P303') then Net_Fee_Income else 0 end) as "Fee_fl"
+,sum(case when L1_Prod_code in ('P5') then Net_Fee_Income else 0 end) as "Fee_OW"
+,sum(case when L1_Prod_code in ('Q3') then Net_Fee_Income else 0 end) as "Fee_tmu"
+,sum(case when L1_Prod_code in ('QA') then Net_Fee_Income else 0 end) as "Fee_Overseas"
+,sum(case when L1_prod_code = 'P1' and L2_prod_code not in ('P101','P102','P103','P104','P107')
+and (L1_prod_code = 'P3' and L2_Prod_code in ('P398','P399','P304'))
+and L1_prod_code in ('PA','PB','PD','PE','Q1','Q2','Q6') then Net_Fee_Income else 0 end) as "Fee_Other"
+,Fee_ddp + Fee_fdp as Fee_ttdp
+,Fee_dl + Fee_fl as Fee_ttl
+
+
+--BAL月積數
+sel customer_id
+,sum(case when L2_Prod_code in ('P101','P102') then avg_balance else 0 end)/6 as "Bal_ddp"
+,sum(case when L2_Prod_code in ('P103','P104') then avg_balance else 0 end)/6 as "Bal_fdp"
+,sum(case when L2_Prod_code in ('P107') then avg_balance else 0 end)/6 as "Bal_ex"
+,sum(case when L1_Prod_code in ('P2','P4') then avg_balance else 0 end)/6 as "Bal_TBL"
+,sum(case when L2_Prod_code in ('P301','P302') then avg_balance else 0 end)/6 as "Bal_dl"
+,sum(case when L2_Prod_code in ('P303') then avg_balance else 0 end)/6 as "Bal_fl"
+,sum(case when L1_Prod_code in ('P5') then avg_balance else 0 end)/6 as "Bal_OW"
+,sum(case when L1_Prod_code in ('Q3') then avg_balance else 0 end)/6 as "Bal_tmu"
+,sum(case when L1_Prod_code in ('QA') then avg_balance else 0 end)/6 as "Bal_Overseas"
+,sum(case when (L1_prod_code = 'P1' and L2_prod_code not in ('P101','P102','P103','P104','P107')
+and (L1_prod_code = 'P3' and L2_Prod_code in ('P398','P399','P304'))
+and L1_prod_code in ('PA','PB','PD','PE','Q1','Q2','Q6')) then avg_balance else 0 end)/6 as "Bal_Other"
+,Bal_ddp + Bal_fdp as Bal_ttdp
+,Bal_dl + Bal_fl as Bal_ttl
+
+
+--COST
+,Rev_ddp - Nii_ddp - Fee_ddp as Cost_ddp
+,Rev_fdp - Nii_fdp - Fee_fdp as Cost_fdp
+,Rev_ex - Nii_ex - Fee_ex as Cost_ex
+,Rev_TBL - Nii_TBL - Fee_TBL as Cost_TBL
+,Rev_dl - Nii_dl - Fee_dl as Cost_dl
+,Rev_fl - Nii_fl - Fee_fl as Cost_fl
+,Rev_ow - Nii_ow - Fee_ow as Cost_ow
+,Rev_tmu - Nii_tmu - Fee_tmu as Cost_tmu
+,Rev_Overseas - Nii_Overseas - Fee_Overseas as Cost_Overseas
+,Rev_Other - Nii_Other - Fee_Other as Cost_Other
+,Cost_ddp + Cost_fdp as Cost_ttdp
+,Cost_dl + Cost_fl as Cost_ttl
+
+--AP
+sel customer_id
+,sum(case when L2_Prod_code in ('P101','P102') then AP_p else 0 end) as "AP_ddp"
+,sum(case when L2_Prod_code in ('P103','P104') then AP_p else 0 end) as "AP_fdp"
+,sum(case when L2_Prod_code in ('P107') then AP_p else 0 end) as "AP_ex"
+,sum(case when L1_Prod_code in ('P2','P4') then AP_p else 0 end) as "AP_TBL"
+,sum(case when L2_Prod_code in ('P301','P302') then AP_p else 0 end) as "AP_dl"
+,sum(case when L2_Prod_code in ('P303') then AP_p else 0 end) as "AP_fl"
+,sum(case when L1_Prod_code in ('P5') then AP_p else 0 end) as "AP_OW"
+,sum(case when L1_Prod_code in ('Q3') then AP_p else 0 end) as "AP_tmu"
+,sum(case when L1_Prod_code in ('QA') then AP_p else 0 end) as "AP_Overseas"
+,sum(case when (L1_prod_code = 'P1' and L2_prod_code not in ('P101','P102','P103','P104','P107')
+and (L1_prod_code = 'P3' and L2_Prod_code in ('P398','P399','P304'))
+and L1_prod_code in ('PA','PB','PD','PE','Q1','Q2','Q6')) then AP_p else 0 end) as "AP_Other"
+,AP_ddp + AP_fdp as AP_ttdp
+,AP_dl + AP_fl as AP_ttl
+
+
+from temp_corporate.cb_cpm_2019
+WHERE snapshot_yr_mth >= 190101 and snapshot_yr_mth < 190701
+group by customer_id
+
+

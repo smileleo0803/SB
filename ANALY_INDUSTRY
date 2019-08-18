@@ -1,0 +1,65 @@
+--SB(DBU)各產業別的客戶數
+select industry_type2 
+,count(customer_id) as cus_cnt
+,cus_cnt/(select count(customer_id) from temp_analysisdev.Z35615_SB_TTL
+where (DBU_flag = 'DBU' and survive_flag = 'Y') or DBU_flag <> 'DBU') as cnt_rate
+from 
+where DBU_flag = 'DBU' and survive_flag = 'Y'
+group by industry_type2
+order by cnt_rate desc
+union
+--SB(OBU及其他)的的客戶數
+select DBU_flag as industry_type2 
+,count(customer_id) as cus_cnt
+,cus_cnt/(select count(customer_id) from    
+where (DBU_flag = 'DBU' and survive_flag = 'Y') or DBU_flag <> 'DBU') as cnt_rate
+from 
+where DBU_flag <> 'DBU'
+
+
+
+--SB(DBU)各產業別的平均REV
+select industry_type2 , avg(T_REV)
+from 
+where DBU_flag = 'DBU' and survive_flag = 'Y'
+group by industry_type2
+order by industry_type2 
+union 
+--SB(OBU及其他)的平均REV
+select DBU_flag as industry_type2  , avg(T_REV)
+from 
+where DBU_flag <> 'DBU'
+
+
+
+--SB(DBU)各產業別的外貿數
+select industry_type2 
+,count(customer_id) as cus_cnt
+,cus_cnt/(select count(customer_id) from    
+where (DBU_flag = 'DBU' and survive_flag = 'Y') or DBU_flag <> 'DBU') as cnt_rate
+from 
+where DBU_flag = 'DBU' and survive_flag = 'Y' and trade_flag = 'Y'
+group by industry_type2
+order by cnt_rate desc
+
+
+--SB(DBU)各產業別的法個家數
+select industry_type2 
+,select count(customer_id) from    
+where  as cus_cnt
+,cus_cnt/(select count(customer_id) from    
+where (DBU_flag = 'DBU' and survive_flag = 'Y') or DBU_flag <> 'DBU') as cnt_rate
+from 
+where DBU_flag = 'DBU' and survive_flag = 'Y'
+group by industry_type2
+order by cnt_rate desc
+union
+--SB(OBU及其他)的的客戶數
+select DBU_flag as industry_type2 
+,count(customer_id) as cus_cnt
+,cus_cnt/(select count(customer_id) from    
+where (DBU_flag = 'DBU' and survive_flag = 'Y') or DBU_flag <> 'DBU') as cnt_rate
+from 
+where DBU_flag <> 'DBU'
+
+

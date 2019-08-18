@@ -1,0 +1,82 @@
+----法金資料
+---1.TOTAL
+--Rev (=NII+FEE-COST)
+--NII
+--FEE
+--COST
+--AP
+--BAL月積數
+---2.BY 各產品
+--Rev (=NII+FEE-COST)
+--NII
+--FEE
+--COST
+--AP
+--BAL月積數
+
+----個金資料
+---1.TOTAL
+--REV (=NII+FEE)
+--NII
+--FEE
+--COST
+--AP?
+--AUM(僅分NII、FEE)
+--LUM(僅分USL、SL)
+---2.BY 各產品
+--REV (=NII+FEE)
+--NII
+--FEE
+--COST
+--AP?
+--AUM(僅分NII、FEE)
+--LUM(僅分USL、SL)
+
+
+----個金資料REV、NII、FEE、COST、OE、CR
+sel customer_id
+	    , sum(zeroifnull(wm_nii)+zeroifnull(wm_fee)) as wm_rev
+	    , sum(zeroifnull(wm_nii)) as wm_nii
+	    , sum(zeroifnull(wm_fee)) as wm_fee
+		, sum(zeroifnull(wm_oe)+zeroifnull(wm_cr)) as wm_cost
+	    , sum(zeroifnull(wm_oe)) as wm_oe
+	    , sum(zeroifnull(wm_cr)) as wm_cr
+	from
+	(
+		sel * from temp_retail.crm_wm_cpm_1906
+		where customer_id in (sel customer_id from temp_bps.wm_subsegment_1906) 
+		union all	
+		sel * from temp_retail.crm_wm_cpm_1905
+		where customer_id in (sel customer_id from temp_bps.wm_subsegment_1906)
+		union all	
+		sel * from temp_retail.crm_wm_cpm_1904
+		where customer_id in (sel customer_id from temp_bps.wm_subsegment_1906)
+		union all	
+		sel * from temp_retail.crm_wm_cpm_1903
+		where customer_id in (sel customer_id from temp_bps.wm_subsegment_1906)
+		union all	
+		sel * from temp_retail.crm_wm_cpm_1902
+		where customer_id in (sel customer_id from temp_bps.wm_subsegment_1906)
+		union all			
+		sel * from temp_retail.crm_wm_cpm_1901
+		where customer_id in (sel customer_id from temp_bps.wm_subsegment_1906) 
+		) a
+	group by 1
+
+
+
+----個金AUM
+select customer_id
+	     , (dsf+osf+dbf+obf+dmf+omf+dETF+oETF+ob+udnf+fof+conf+dsd+sd_xb+DCD+psa+pga+pvin+trust+gd+hk_dcd+hk_mf)  as fee_aum
+	     , (general_pb+salary_dp+security_dp+security_xb+td+kb+pb_xb+td_xb+rp+ov_xb+hk_pb+hk_td) as nii_aum	    
+	     , asset_bal as ttl_aum
+	from temp_bps.wm_assetsclass_1906 
+
+----個金LUM
+select customer_id 
+,sum(sl_bal)/6 as sl_bal 
+,sum(usl_bal)/6 as usl_bal
+,sl_bal + usl_bal as ttl
+from vp_drv_model.drv_cust_lum_info_m
+where Snapshot_Yr_Mth >= 190101 and snapshot_yr_mth < 190701
+group by customer_id

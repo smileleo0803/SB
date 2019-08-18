@@ -1,0 +1,114 @@
+--ID
+--DBU/OBU及其他
+--產業別(用ID去辨識)
+--地區(串個法共用customer資料庫)
+
+
+
+----法金SB戶
+
+select cus.customer_id 
+--DBU/OBU及其他
+,case when substr(cus.customer_id,1,2) >= '00' and substr(cus.customer_id,1,2) <= '99' and length(trim(cus.customer_id)) = 8 then 'DBU'
+else 'OBU及其他' end as DBU_flag
+--產業別
+,Case when substr(cus.customer_id,1,2) in ('01','02','03') then 'A.農、林、漁、牧業'
+when substr(cus.customer_id,1,2) in ('05','06') then 'B.礦業及土石採取業'
+when substr(cus.customer_id,1,2) >= '08' and substr(cus.customer_id,1,2) <= '34' then 'C.製造業'
+when substr(cus.customer_id,1,2) in ('35') then 'D.電力及燃氣供應業'
+when substr(cus.customer_id,1,2) in ('36','37','38','39') then 'E.用水供應及污染整治業'
+when substr(cus.customer_id,1,2) in ('41','42','43') then 'F.營建工程業'
+when substr(cus.customer_id,1,2) in ('45','46','47','48') then 'G.批發及零售業'
+when substr(cus.customer_id,1,2) in ('49','50','51','52','53','54') then 'H.運輸及倉儲業'
+when substr(cus.customer_id,1,2) in ('55','56') then 'I.住宿及餐飲業'
+when substr(cus.customer_id,1,2) >= '58' and substr(cus.customer_id,1,2) <= '63' then 'J.出版、影音製作、傳播及資通
+訊服務業'
+when substr(cus.customer_id,1,2) >= '64' and substr(cus.customer_id,1,2) <= '66' then 'K.金融及保險業'
+when substr(cus.customer_id,1,2) in ('67','68') then 'L.不動產業'
+when substr(cus.customer_id,1,2) >= '69' and substr(cus.customer_id,1,2) <= '76' then 'M.專業、科學及技術服務業'
+when substr(cus.customer_id,1,2) >= '77' and substr(cus.customer_id,1,2) <= '82' then 'N.支援服務業'
+when substr(cus.customer_id,1,2) in ('83','84') then 'O.公共行政及國防；強制性社會
+安全'
+when substr(cus.customer_id,1,2) = '85' then 'P.教育業'
+when substr(cus.customer_id,1,2) >= '86' and substr(cus.customer_id,1,2) <= '88' then 'Q.醫療保健及社會工作服務業'
+when substr(cus.customer_id,1,2) >= '90' and substr(cus.customer_id,1,2) <= '93' then 'R.藝術、娛樂及休閒服務業 '
+when substr(cus.customer_id,1,2) >= '94' and substr(cus.customer_id,1,2) <= '96' then 'S.其他服務業'
+else '' end as "industry_type"
+--產業別2
+,case when industry_type in ('A.農、林、漁、牧業' , 'B.礦業及土石採取業','D.電力及燃氣供應業','E.用水供應及污染整治業','P.教育業','Q.醫療保健及社會工作服務業') then '其他'
+else industry_type end as "industry_type2"
+--地區(串個法共用customer資料庫)
+,bns.zip_code
+,City
+,District
+
+
+
+from 
+ (select customer_id 
+  from temp_corporate_weekly_cif_snapshot
+  where channel_code = 'SME' ) cus
+left join 
+ (select customer_id , substr(trim(contact_zip_code , 1 ,3)) as zip_code 
+  from vr_bns_mcif.bns_customer_1906
+ ) bns
+on cus.customer_id = bns.customer_id
+left join 
+ ( select * from temp_analysisdev_Z35615_Zip_code
+ ) bns.zip_code = ZIP.zip_code
+
+
+
+----個金SB戶
+select cus.sb_id as customer_id
+--DBU/OBU及其他
+,case when substr(cus.customer_id,1,2) >= '00' and substr(cus.customer_id,1,2) <= '99' and length(trim(cus.customer_id)) = 8 then 'DBU'
+else 'OBU及其他' end as DBU_flag
+--產業別
+,Case when substr(cus.customer_id,1,2) in ('01','02','03') then 'A.農、林、漁、牧業'
+when substr(cus.customer_id,1,2) in ('05','06') then 'B.礦業及土石採取業'
+when substr(cus.customer_id,1,2) >= '08' and substr(cus.customer_id,1,2) <= '34' then 'C.製造業'
+when substr(cus.customer_id,1,2) in ('35') then 'D.電力及燃氣供應業'
+when substr(cus.customer_id,1,2) in ('36','37','38','39') then 'E.用水供應及污染整治業'
+when substr(cus.customer_id,1,2) in ('41','42','43') then 'F.營建工程業'
+when substr(cus.customer_id,1,2) in ('45','46','47','48') then 'G.批發及零售業'
+when substr(cus.customer_id,1,2) in ('49','50','51','52','53','54') then 'H.運輸及倉儲業'
+when substr(cus.customer_id,1,2) in ('55','56') then 'I.住宿及餐飲業'
+when substr(cus.customer_id,1,2) >= '58' and substr(cus.customer_id,1,2) <= '63' then 'J.出版、影音製作、傳播及資通
+訊服務業'
+when substr(cus.customer_id,1,2) >= '64' and substr(cus.customer_id,1,2) <= '66' then 'K.金融及保險業'
+when substr(cus.customer_id,1,2) in ('67','68') then 'L.不動產業'
+when substr(cus.customer_id,1,2) >= '69' and substr(cus.customer_id,1,2) <= '76' then 'M.專業、科學及技術服務業'
+when substr(cus.customer_id,1,2) >= '77' and substr(cus.customer_id,1,2) <= '82' then 'N.支援服務業'
+when substr(cus.customer_id,1,2) in ('83','84') then 'O.公共行政及國防；強制性社會
+安全'
+when substr(cus.customer_id,1,2) = '85' then 'P.教育業'
+when substr(cus.customer_id,1,2) >= '86' and substr(cus.customer_id,1,2) <= '88' then 'Q.醫療保健及社會工作服務業'
+when substr(cus.customer_id,1,2) >= '90' and substr(cus.customer_id,1,2) <= '93' then 'R.藝術、娛樂及休閒服務業 '
+when substr(cus.customer_id,1,2) >= '94' and substr(cus.customer_id,1,2) <= '96' then 'S.其他服務業'
+else '' end as "industry_type"
+--產業別2
+,case when industry_type in ('A.農、林、漁、牧業' , 'B.礦業及土石採取業','D.電力及燃氣供應業','E.用水供應及污染整治業','P.教育業','Q.醫療保健及社會工作服務業') then '其他'
+else industry_type end as "industry_type2"
+--地區(串個法共用customer資料庫)
+,bns.zip_code
+,City
+,District
+
+from 
+(select sb_id from vp_drv_model.drv_cust_sb_info_m
+where snapshot_yr_mth/100-10000=1906
+and Pure_Sec_Ind=0
+and Sb_Ind=1 
+and Company_List_Code='G000'
+and  (Duration_Code  is NULL or Duration_Code<>'N')
+) cus
+
+left join 
+ (select customer_id , substr(trim(contact_zip_code , 1 ,3)) as zip_code 
+  from vr_bns_mcif.bns_customer_1906
+ ) bns
+on cus.customer_id = bns.customer_id
+left join 
+ ( select * from temp_analysisdev_Z35615_Zip_code
+ ) bns.zip_code = ZIP.zip_code
